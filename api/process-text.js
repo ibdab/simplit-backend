@@ -33,7 +33,7 @@ function getFreeLimit() {
 function getProUserIds() {
   return new Set(
     (process.env.PRO_USER_IDS || "")
-      .split(",")
+      .split(/[\s,;]+/)
       .map((value) => value.trim())
       .filter(Boolean)
   );
@@ -42,7 +42,7 @@ function getProUserIds() {
 function getProEmails() {
   return new Set(
     (process.env.PRO_EMAILS || "")
-      .split(",")
+      .split(/[\s,;]+/)
       .map((value) => value.trim().toLowerCase())
       .filter(Boolean)
   );
@@ -50,8 +50,11 @@ function getProEmails() {
 
 function getUserPlan(user) {
   if (!user) return "free";
+  if ((process.env.FORCE_PRO || "").toLowerCase() === "true") return "pro";
   if (getProUserIds().has(user.id)) return "pro";
-  if (user.email && getProEmails().has(user.email.toLowerCase())) return "pro";
+  const proEmails = getProEmails();
+  if (proEmails.has("*")) return "pro";
+  if (user.email && proEmails.has(user.email.toLowerCase())) return "pro";
   return "free";
 }
 
